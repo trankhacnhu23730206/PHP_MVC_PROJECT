@@ -2,6 +2,7 @@
 class Users extends Controller {
     public function __construct(){
         $this->userModel = $this->model('User');
+        $this->courseModel = $this->model('Course');
     }
 
     public function login(){
@@ -42,9 +43,6 @@ class Users extends Controller {
                 if($loggedInUser){
                     // Create session
                     $this->createUserSession($loggedInUser);
-                } else {
-                    $data['password_err'] = 'Password incorrect';
-                    $this->view('login', $data);
                 }
             } else {
                 // Load view with errors
@@ -65,10 +63,23 @@ class Users extends Controller {
         }
     }
 
+    public function dashboard(){
+        $data = []; // Initialize data as empty
+
+        // Check if 'view' parameter is set and if it's 'courses'
+        if (isset($_GET['view']) && $_GET['view'] === 'courses') {
+            $courses = $this->courseModel->getAllCourses();
+            $data['courses'] = $courses;
+        }
+        
+        $this->view('dashboard', $data);
+    }
+
     public function createUserSession($user){
         $_SESSION['user_id'] = $user->id;
         $_SESSION['user_username'] = $user->username;
-        $this->view('dashboard');
+        header('location: ' . URLROOT . '/public/users/dashboard'); // Redirect to dashboard without courses
+        exit();
     }
 
     public function logout(){
