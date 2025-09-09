@@ -14,6 +14,11 @@ $script_name = $_SERVER['SCRIPT_NAME'];
 $base_path = dirname(dirname($script_name));
 // Ensure base_path is not just '/' or '\' for root domains, otherwise rtrim might remove the only slash.
 $base_path = ($base_path === '/' || $base_path === '\\') ? '' : $base_path;
+
+// Dynamically replace the base path if it's incorrect
+$base_path = str_replace('demoPHP', 'PHP_MVC_PROJECT', $base_path);
+
 define('URLROOT', $protocol . '://' . $host . $base_path);
 // Site Name
-define('SITENAME', 'demoPHP');
+define('SITENAME', 'PHP_MVC_PROJECT');
+

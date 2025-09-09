@@ -13,8 +13,8 @@
       $url = $this->getUrl();
 
       // Look in controllers for first value
-      // Check if controller is passed in URL
-      if(isset($url[0]) && file_exists('../app/controllers/' . ucwords($url[0]). '.php')){
+      // Check if a controller is passed in the URL
+      if(!empty($url) && file_exists('../app/controllers/' . ucwords($url[0]). '.php')){
         // If exists, set as controller
         $this->currentController = ucwords($url[0]);
         // Unset 0 Index
@@ -48,8 +48,14 @@
       if(isset($_GET['url'])){
         $url = rtrim($_GET['url'], '/');
         $url = filter_var($url, FILTER_SANITIZE_URL);
+        // Return empty array if url is empty after sanitizing
+        if (empty($url)) {
+            return [];
+        }
         $url = explode('/', $url);
         return $url;
       }
+      // Return empty array if no url is set
+      return [];
     }
   }
