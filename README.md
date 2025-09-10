@@ -1,50 +1,79 @@
-# PHP_MVC_PROJECT
-PROJECT MVC PHP LAP TRINH WEB PROJECT
+# Đồ án Demo PHP MVC
 
-Student & Course Management System – PHP MVC Project
-1. Giới thiệu
+Dự án PHP đơn giản được xây dựng trên mô hình MVC tự chế, bao gồm các chức năng cơ bản như đăng nhập, đăng xuất và một trang dashboard đơn giản.
 
-Đây là một đồ án xây dựng ứng dụng web quản lý sinh viên và môn học, được phát triển bằng PHP theo kiến trúc MVC (Model – View – Controller).
-Mục tiêu của dự án là giúp quản trị viên có thể dễ dàng quản lý thông tin sinh viên, môn học, và mối quan hệ đăng ký học phần giữa chúng.
+## Tính năng chính
 
-2. Công nghệ sử dụng
+-   Kiến trúc MVC (Model-View-Controller) tùy chỉnh.
+-   Cơ chế định tuyến (Routing) để xử lý URL thân thiện.
+-   Xác thực người dùng (Đăng nhập / Đăng xuất).
+-   Sử dụng PDO để tương tác với cơ sở dữ liệu một cách an toàn.
 
-Ngôn ngữ lập trình: PHP (thuần, không dùng framework lớn)
+## Yêu cầu
 
-Cơ sở dữ liệu: MySQL
+-   XAMPP (hoặc một môi trường tương tự có Apache, MySQL, PHP).
+-   Apache với module `mod_rewrite` đã được kích hoạt.
+-   PHP
+-   MySQL hoặc MariaDB
 
-Mô hình kiến trúc: MVC
+## Hướng dẫn Cài đặt và Chạy dự án
 
-Frontend: HTML, CSS, Bootstrap (cơ bản)
+### Bước 1: Cài đặt Cơ sở dữ liệu
 
-Công cụ hỗ trợ: XAMPP / Laragon để chạy môi trường PHP + MySQL
+1.  Khởi động **Apache** và **MySQL** từ XAMPP Control Panel.
+2.  Truy cập vào phpMyAdmin: `http://localhost/phpmyadmin`.
+3.  Tạo một cơ sở dữ liệu mới với tên là `demo_php` và bảng mã (collation) là `utf8mb4_general_ci`.
+4.  Chọn database `demo_php` vừa tạo, vào tab **SQL** và chạy đoạn mã sau để tạo bảng `users`:
 
-3. Chức năng chính
+    ```sql
+    CREATE TABLE `users` (
+      `id` int(11) NOT NULL AUTO_INCREMENT,
+      `username` varchar(255) NOT NULL,
+      `password` varchar(255) NOT NULL,
+      `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+      PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ```
 
-👩‍🎓 Quản lý sinh viên: thêm, sửa, xóa, tìm kiếm, xem danh sách
+### Bước 2: Tạo người dùng mẫu
 
-📚 Quản lý môn học: thêm, sửa, xóa, tìm kiếm, xem danh sách
+Để có thể đăng nhập, bạn cần tạo ít nhất một người dùng trong database.
 
-🔗 Đăng ký học phần: quản lý quan hệ giữa sinh viên và môn học
+1.  **Tạo mật khẩu mã hóa**:
+    *   Truy cập vào đường dẫn: `http://localhost/demoPHP/generate_hash.php` (hoặc `http://localhost:<PORT>/demoPHP/generate_hash.php` nếu bạn dùng port khác).
+    *   Trang này sẽ tạo ra một chuỗi mật khẩu đã được mã hóa cho mật khẩu `123`. Hãy **sao chép** chuỗi mã hóa đó.
 
-🔍 Tìm kiếm & lọc dữ liệu: theo tên sinh viên, mã môn học,...
+2.  **Thêm người dùng vào database**:
+    *   Quay lại tab **SQL** trong phpMyAdmin và chạy lệnh sau. **Lưu ý:** thay thế `CHUỖI_MÃ_HÓA_BẠN_VỪA_SAO_CHÉP` bằng chuỗi bạn đã sao chép ở trên.
 
-🔐 Xử lý đăng nhập (tùy chọn): phân quyền quản trị viên
+    ```sql
+    INSERT INTO `users` (`username`, `password`) VALUES ('testuser', 'CHUỖI_MÃ_HÓA_BẠN_VỪA_SAO_CHÉP');
+    ```
 
-4. Cách chạy dự án
+    *   Sau bước này, bạn đã có một người dùng với tài khoản là `testuser` và mật khẩu là `123`.
 
-Clone hoặc tải source code về máy
+### Bước 3: Cấu hình Apache
 
-Import file database.sql trong thư mục /database vào MySQL
+Để ứng dụng có thể sử dụng URL thân thiện (`/users/login` thay vì `index.php?url=...`), bạn cần kích hoạt `mod_rewrite`.
 
-Cấu hình file config/config.php để kết nối database
+1.  Mở tệp cấu hình Apache tại: `c:\xampp\apache\conf\httpd.conf`.
+2.  Tìm dòng `#LoadModule rewrite_module modules/mod_rewrite.so`.
+3.  Xóa dấu `#` ở đầu dòng để kích hoạt module.
+4.  Khởi động lại Apache trong XAMPP Control Panel.
 
-Chạy dự án bằng XAMPP hoặc Laragon (truy cập qua http://localhost/project/)
+## Chạy ứng dụng
 
-5. Thành viên nhóm
+Sau khi hoàn tất các bước trên, bạn có thể truy cập ứng dụng bằng cách mở trình duyệt và vào địa chỉ:
 
-[Tên SV 1] – Backend & Database
+```
+http://localhost/demoPHP/
+```
 
-[Tên SV 2] – Frontend & UI
+Bạn sẽ được tự động chuyển hướng đến trang đăng nhập. Hãy sử dụng tài khoản `testuser` / `123` để đăng nhập.
 
-[Tên SV 3] – Tích hợp & kiểm thử
+## Cấu trúc thư mục
+
+-   `/app`: Chứa logic chính của ứng dụng (controllers, models, views).
+-   `/config`: Chứa các tệp cấu hình, ví dụ như thông tin kết nối database.
+-   `/core`: Chứa các lớp lõi của framework (bộ định tuyến, controller cơ sở...).
+-   `/public`: Là thư mục gốc của web, chứa các tệp công khai như `index.php` (front-controller), `.htaccess` và sau này có thể chứa CSS, JS, hình ảnh.
