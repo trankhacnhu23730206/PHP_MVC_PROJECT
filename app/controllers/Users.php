@@ -3,6 +3,7 @@ class Users extends Controller {
     public function __construct(){
         $this->userModel = $this->model('User');
         $this->courseModel = $this->model('Course');
+        $this->registrationModel = $this->model('Registration'); // Load the new model
     }
 
     public function login(){
@@ -30,22 +31,18 @@ class Users extends Controller {
 
             // Check for user/email
             if($this->userModel->findUserByUsername($data['username'])){
-                // User found
+                // User Found
+                $loggedInUser = $this->userModel->login($data['username'], $data['password']);
+                if($loggedInUser){
+                    // Create Session
+                    $this->createUserSession($loggedInUser);
+                } else {
+                    $data['password_err'] = 'Password incorrect';
+                    $this->view('login', $data);
+                }
             } else {
                 // User not found
                 $data['username_err'] = 'No user found';
-            }
-
-            // Make sure errors are empty
-            if(empty($data['username_err']) && empty($data['password_err'])){
-                // Validated
-                $loggedInUser = $this->userModel->login($data['username'], $data['password']);
-                if($loggedInUser){
-                    // Create session
-                    $this->createUserSession($loggedInUser);
-                }
-            } else {
-                // Load view with errors
                 $this->view('login', $data);
             }
 
@@ -64,12 +61,53 @@ class Users extends Controller {
     }
 
     public function dashboard(){
-        $data = []; // Initialize data as empty
+        // Check for actions first (register/cancel)
+        if(isset($_GET['action'])){
+            if($_GET['action'] == 'register' && isset($_GET['id'])){
+                $courseToRegister = $this->courseModel->getCourseById($_GET['id']);
+                
+                if($courseToRegister){
+                    $currentCredits = $this->registrationModel->getTotalCreditsForSemester(
+                        $_SESSION['user_id'], 
+                        $courseToRegister->semester, 
+                        $courseToRegister->school_year
+                    );
 
-        // Check if 'view' parameter is set and if it's 'courses'
-        if (isset($_GET['view']) && $_GET['view'] === 'courses') {
-            $courses = $this->courseModel->getAllCourses();
-            $data['courses'] = $courses;
+                    if(($currentCredits + $courseToRegister->credits) > 20){
+                        // Set flash message
+                        $_SESSION['credit_error'] = 'Đăng ký thất bại: Vượt quá 20 tín chỉ cho học kỳ ' . $courseToRegister->semester . ' năm học ' . $courseToRegister->school_year . '.';
+                        // Redirect back to courses list
+                        header('location: ' . URLROOT . '/public/users/dashboard?view=courses');
+                        exit();
+                    }
+                }
+
+                // If check passes or course info not found (let registration fail gracefully), proceed
+                $this->registrationModel->registerCourse($_SESSION['user_id'], $_GET['id']);
+                // Redirect to the registrations view to see the result
+                header('location: ' . URLROOT . '/public/users/dashboard?view=registrations');
+                exit();
+            }
+
+            if($_GET['action'] == 'cancel' && isset($_GET['id'])){
+                $this->registrationModel->cancelRegistration($_GET['id']);
+                // Redirect to the registrations view
+                header('location: ' . URLROOT . '/public/users/dashboard?view=registrations');
+                exit();
+            }
+        }
+
+        // Prepare data for the view
+        $data = [
+            'courses' => [],
+            'registrations' => $this->registrationModel->getRegistrationsByUserId($_SESSION['user_id'])
+        ];
+
+        $view = $_GET['view'] ?? 'dashboard';
+
+        // Only fetch all courses if on the courses view
+        if($view == 'courses'){
+            $data['courses'] = $this->courseModel->getAllCourses();
         }
         
         $this->view('dashboard', $data);

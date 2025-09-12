@@ -10,4 +10,10 @@ class Course {
         $this->db->query('SELECT * FROM courses');
         return $this->db->resultSet();
     }
+
+    public function getCourseById($course_id){
+        $this->db->query('SELECT * FROM courses WHERE id = :course_id');
+        $this->db->bind(':course_id', $course_id);
+        return $this->db->single();
+    }
 }
