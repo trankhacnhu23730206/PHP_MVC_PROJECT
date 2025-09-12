@@ -40,10 +40,6 @@ class Users extends Controller {
                     $data['password_err'] = 'Password incorrect';
                     $this->view('login', $data);
                 }
-            } else {
-                // User not found
-                $data['username_err'] = 'No user found';
-                $this->view('login', $data);
             }
 
         } else {
@@ -111,6 +107,93 @@ class Users extends Controller {
         }
         
         $this->view('dashboard', $data);
+    }
+
+    public function courseSearch(){
+        // This method is for AJAX requests
+        $searchTerm = $_GET['term'] ?? '';
+
+        $data = [
+            'courses' => $this->courseModel->searchCourses($searchTerm),
+            'registrations' => $this->registrationModel->getRegistrationsByUserId($_SESSION['user_id'])
+        ];
+
+        // Load the partial view and output it
+        $this->view('partials/course_table_rows', $data);
+    }
+
+    public function changePassword(){
+        if($_SERVER['REQUEST_METHOD'] == 'POST'){
+            // Sanitize POST data
+            $_POST = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+
+            $data = [
+                'current_password' => trim($_POST['current_password']),
+                'new_password' => trim($_POST['new_password']),
+                'confirm_password' => trim($_POST['confirm_password']),
+                'current_password_err' => '',
+                'new_password_err' => '',
+                'confirm_password_err' => '',
+                'success_message' => ''
+            ];
+
+            // Validate current password
+            if(empty($data['current_password'])){
+                $data['current_password_err'] = 'Vui lòng nhập mật khẩu hiện tại.';
+            } else {
+                $hashed_current_password_in_db = $this->userModel->getPasswordByUserId($_SESSION['user_id']);
+                if(!password_verify($data['current_password'], $hashed_current_password_in_db)){
+                    $data['current_password_err'] = 'Mật khẩu hiện tại không đúng.';
+                }
+            }
+
+            // Validate new password
+            if(empty($data['new_password'])){
+                $data['new_password_err'] = 'Vui lòng nhập mật khẩu mới.';
+            } elseif(strlen($data['new_password']) < 6){
+                $data['new_password_err'] = 'Mật khẩu mới phải có ít nhất 6 ký tự.';
+            }
+
+            // Validate confirm password
+            if(empty($data['confirm_password'])){
+                $data['confirm_password_err'] = 'Vui lòng xác nhận mật khẩu mới.';
+            } else {
+                if($data['new_password'] != $data['confirm_password']){
+                    $data['confirm_password_err'] = 'Mật khẩu xác nhận không khớp.';
+                }
+            }
+
+            // Make sure errors are empty
+            if(empty($data['current_password_err']) && empty($data['new_password_err']) && empty($data['confirm_password_err'])){
+                // Hash new password
+                $data['new_password'] = password_hash($data['new_password'], PASSWORD_DEFAULT);
+
+                // Update password in DB
+                if($this->userModel->updatePassword($_SESSION['user_id'], $data['new_password'])){
+                    $data['success_message'] = 'Mật khẩu đã được đổi thành công!';
+                    // Clear password fields after successful update
+                    $data['current_password'] = '';
+                    $data['new_password'] = '';
+                    $data['confirm_password'] = '';
+                } else {
+                    die('Có lỗi xảy ra khi cập nhật mật khẩu.');
+                }
+            }
+            $this->view('change_password', $data);
+
+        } else {
+            // Init data
+            $data = [
+                'current_password' => '',
+                'new_password' => '',
+                'confirm_password' => '',
+                'current_password_err' => '',
+                'new_password_err' => '',
+                'confirm_password_err' => '',
+                'success_message' => ''
+            ];
+            $this->view('change_password', $data);
+        }
     }
 
     public function createUserSession($user){

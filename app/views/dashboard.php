@@ -54,12 +54,7 @@
             </a>
         </nav>
 
-        <div class="p-4 mt-auto">
-            <a href="<?php echo URLROOT; ?>/public/users/logout" class="flex items-center justify-center space-x-2 text-red-500 hover:text-red-700 py-2 px-4 rounded-lg transition duration-200 hover:bg-gray-100">
-                <i class="fas fa-sign-out-alt text-lg"></i>
-                <span>Đăng xuất</span>
-            </a>
-        </div>
+        
     </aside>
 
     <main class="flex-1 p-8 overflow-y-auto">
@@ -71,9 +66,17 @@
         ?>
         <header class="flex justify-between items-center mb-6">
             <h1 class="text-3xl font-bold text-gray-800"><?php echo $pageTitle; ?></h1>
-            <div class="flex items-center space-x-4">
-                <span class="text-gray-700">Chào mừng, <?php echo htmlspecialchars($_SESSION['user_username']); ?>!</span>
-                <img class="w-10 h-10 rounded-full border-2 border-blue-500" src="https://via.placeholder.com/150" alt="Profile Picture">
+            <!-- Profile Dropdown -->
+            <div class="relative">
+                <button onclick="toggleDropdown('profile-dropdown')" class="flex items-center space-x-4 focus:outline-none">
+                    <span class="text-gray-700">Chào mừng, <?php echo htmlspecialchars($_SESSION['user_username']); ?>!</span>
+                    <img class="w-10 h-10 rounded-full border-2 border-blue-500" src="https://via.placeholder.com/150" alt="Profile Picture">
+                </button>
+                <!-- Dropdown Menu -->
+                <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                    <a href="<?php echo URLROOT; ?>/public/users/changePassword" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Đổi mật khẩu</a>
+                    <a href="<?php echo URLROOT; ?>/public/users/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Đăng xuất</a>
+                </div>
             </div>
         </header>
         
@@ -91,19 +94,9 @@
                     
                     echo '<section class="bg-white p-6 rounded-lg shadow-md mb-6">';
                     echo '<h2 class="text-2xl font-semibold text-gray-800 mb-4">Các Lớp học có thể Đăng ký</h2>';
+                    echo '<div class="mb-4"><input type="text" id="course-search" placeholder="Tìm theo tên hoặc mã môn học..." class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>';
 
-                    // Prepare a list of already registered course IDs (with active status)
-                    $registeredCourseIds = [];
-                    if (!empty($data['registrations'])) {
-                        foreach ($data['registrations'] as $reg) {
-                            if ($reg->status === 'Chờ xác nhận' || $reg->status === 'Đã xác nhận') {
-                                $registeredCourseIds[] = $reg->id; // course_id is aliased as id from c.*
-                            }
-                        }
-                    }
-
-                    if (!empty($data['courses'])) {
-                        echo '<div class="table-responsive">';
+                    echo '<div class="table-responsive">';
                         echo '<table class="min-w-full bg-white border border-gray-200 text-sm whitespace-nowrap">';
                         echo '<thead>';
                         echo '<tr class="bg-gray-50">';
@@ -117,35 +110,18 @@
                         echo '<th class="py-3 px-4 border-b text-right text-gray-600 font-semibold">Hành động</th>';
                         echo '</tr>';
                         echo '</thead>';
-                        echo '<tbody>';
-                        foreach ($data['courses'] as $course) {
-                            echo '<tr class="hover:bg-gray-50">';
-                            echo '<td class="py-3 px-4 border-b text-gray-700 text-center">' . htmlspecialchars($course->id) . '</td>';
-                            echo '<td class="py-3 px-4 border-b text-gray-700 font-mono">' . htmlspecialchars($course->class_code) . '</td>';
-                            echo '<td class="py-3 px-4 border-b text-gray-700 font-semibold">' . htmlspecialchars($course->course_name) . '</td>';
-                            echo '<td class="py-3 px-4 border-b text-gray-700 text-center">' . htmlspecialchars($course->credits) . '</td>';
-                            echo '<td class="py-3 px-4 border-b text-gray-700">' . htmlspecialchars($course->teacher) . '</td>';
-                            echo '<td class="py-3 px-4 border-b text-gray-700">' . htmlspecialchars($course->schedule_day) . ' (' . htmlspecialchars($course->schedule_time) . ')</td>';
-                            echo '<td class="py-3 px-4 border-b text-gray-700 text-center">' . htmlspecialchars($course->semester) . '</td>';
-
-                            // ===== NÚT ĐĂNG KÝ (CÓ ĐIỀU KIỆN) =====
-                            echo '<td class="py-3 px-4 border-b text-right">';
-                            if (in_array($course->id, $registeredCourseIds)) {
-                                echo '<span class="px-3 py-2 text-xs font-bold text-gray-500 bg-gray-100 rounded">Đã đăng ký</span>';
-                            } else {
-                                echo '<a href="?view=registrations&action=register&id=' . htmlspecialchars($course->id) . '" onclick="return confirm(\'Bạn có muốn đăng ký lớp học này không?\')" class="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-3 rounded inline-flex items-center transition duration-150">';
-                                echo '<i class="fas fa-plus mr-1"></i> Đăng ký';
-                                echo '</a>';
-                            }
-                            echo '</td>';
-                            echo '</tr>';
+                        echo '<tbody id="course-table-body">';
+                        
+                        // Initial table content is rendered via the partial view
+                        if (!empty($data['courses'])) {
+                            include APPROOT . '/app/views/partials/course_table_rows.php';
+                        } else {
+                            echo '<tr><td colspan="8" class="text-center py-4 text-gray-600">Không có lớp học nào để hiển thị.</td></tr>';
                         }
+
                         echo '</tbody>';
                         echo '</table>';
                         echo '</div>';
-                    } else {
-                        echo '<p class="text-gray-600">Không có lớp học nào để hiển thị.</p>';
-                    }
                     echo '</section>';
                     break;
                 
@@ -164,8 +140,8 @@
                         echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Mã lớp học</th>';
                         echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Tên môn học</th>';
                         echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Trạng thái</th>';
-                        echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Ngày ĐK</th>';
-                        echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Ngày KQ</th>';
+                        echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Ngày Đăng Ký</th>';
+                        echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Ngày Kết Quả</th>';
                         echo '<th class="py-3 px-4 border-b text-right text-gray-600 font-semibold">Hành động</th>';
                         echo '</tr>';
                         echo '</thead>';
@@ -251,5 +227,40 @@
             }
         }
     </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Only run the search script if the search input exists on the page
+        const searchInput = document.getElementById('course-search');
+        if (searchInput) {
+            const tableBody = document.getElementById('course-table-body');
+            const urlRoot = '<?php echo URLROOT; ?>';
+            let debounceTimer;
+
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value;
+
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-4">Đang tìm kiếm...</td></tr>';
+
+                    fetch(`${urlRoot}/public/users/courseSearch?term=${searchTerm}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.text();
+                        })
+                        .then(html => {
+                            tableBody.innerHTML = html;
+                        })
+                        .catch(error => {
+                            console.error('Error fetching search results:', error);
+                            tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-red-500">Có lỗi xảy ra khi tìm kiếm.</td></tr>';
+                        });
+                }, 300); // 300ms debounce
+            });
+        }
+    });
+</script>
 </body>
 </html>

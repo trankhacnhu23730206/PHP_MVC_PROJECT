@@ -16,4 +16,10 @@ class Course {
         $this->db->bind(':course_id', $course_id);
         return $this->db->single();
     }
+
+    public function searchCourses($searchTerm){
+        $this->db->query('SELECT * FROM courses WHERE course_name LIKE :searchTerm OR class_code LIKE :searchTerm');
+        $this->db->bind(':searchTerm', '%' . $searchTerm . '%');
+        return $this->db->resultSet();
+    }
 }
