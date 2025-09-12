@@ -82,4 +82,15 @@ class Registration {
         
         return $row->total_credits ?? 0;
     }
+
+    // Get confirmed registrations grouped by semester for a specific user
+    public function getConfirmedRegistrationsGroupedBySemester($user_id){
+        $this->db->query('SELECT r.id as registration_id, c.*, r.status, r.registration_date, r.result_date
+                          FROM registrations r
+                          JOIN courses c ON r.course_id = c.id
+                          WHERE r.user_id = :user_id AND r.status = "Đã xác nhận"
+                          ORDER BY c.school_year DESC, c.semester DESC');
+        $this->db->bind(':user_id', $user_id);
+        return $this->db->resultSet();
+    }
 }

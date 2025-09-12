@@ -96,7 +96,8 @@ class Users extends Controller {
         // Prepare data for the view
         $data = [
             'courses' => [],
-            'registrations' => $this->registrationModel->getRegistrationsByUserId($_SESSION['user_id'])
+            'registrations' => [], // Initialize registrations as empty
+            'confirmed_courses_by_semester' => [] // New data for confirmed courses
         ];
 
         $view = $_GET['view'] ?? 'dashboard';
@@ -104,8 +105,24 @@ class Users extends Controller {
         // Only fetch all courses if on the courses view
         if($view == 'courses'){
             $data['courses'] = $this->courseModel->getAllCourses();
+        } elseif ($view == 'registrations') {
+            $data['registrations'] = $this->registrationModel->getRegistrationsByUserId($_SESSION['user_id']);
+        } elseif ($view == 'course_info') {
+            $confirmedRegistrations = $this->registrationModel->getConfirmedRegistrationsGroupedBySemester($_SESSION['user_id']);
+            $groupedCourses = [];
+            foreach ($confirmedRegistrations as $reg) {
+                $semesterKey = $reg->school_year . '-' . $reg->semester;
+                if (!isset($groupedCourses[$semesterKey])) {
+                    $groupedCourses[$semesterKey] = [
+                        'semester_display' => 'Học kỳ ' . $reg->semester . ' - Năm học ' . $reg->school_year,
+                        'courses' => []
+                    ];
+                }
+                $groupedCourses[$semesterKey]['courses'][] = $reg;
+            }
+            $data['confirmed_courses_by_semester'] = $groupedCourses;
         }
-        
+
         $this->view('dashboard', $data);
     }
 
@@ -199,6 +216,7 @@ class Users extends Controller {
     public function createUserSession($user){
         $_SESSION['user_id'] = $user->id;
         $_SESSION['user_username'] = $user->username;
+        $_SESSION['user_gender'] = $user->gender; // Store user's gender in session
         header('location: ' . URLROOT . '/public/users/dashboard'); // Redirect to dashboard without courses
         exit();
     }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Quản Trị</title>
+    <title>Trang Chủ | CMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -32,7 +32,7 @@
         <div class="p-6">
               <a href="?view=dashboard" class="flex items-center space-x-3">
                   <i class="fas fa-book-open text-3xl text-blue-600"></i>
-                  <span class="text-2xl font-bold text-gray-800">E-Learning</span>
+                  <span class="text-2xl font-bold text-gray-800">Trang Chủ</span>
             </a>
         </div>
         
@@ -40,10 +40,6 @@
             <?php 
                 $currentView = $_GET['view'] ?? 'dashboard'; 
             ?>
-            <a href="?view=dashboard" class="sidebar-link flex items-center space-x-3 py-2 px-4 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition duration-200 <?php echo ($currentView === 'dashboard') ? 'active' : ''; ?>">
-                <i class="fas fa-tachometer-alt fa-fw"></i>
-                <span>Dashboard</span>
-            </a>
             <a href="?view=courses" class="sidebar-link flex items-center space-x-3 py-2 px-4 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition duration-200 <?php echo ($currentView === 'courses') ? 'active' : ''; ?>">
                 <i class="fas fa-list-ul fa-fw"></i>
                 <span>Danh sách Khóa học</span>
@@ -51,6 +47,10 @@
             <a href="?view=registrations" class="sidebar-link flex items-center space-x-3 py-2 px-4 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition duration-200 <?php echo ($currentView === 'registrations') ? 'active' : ''; ?>">
                 <i class="fas fa-clipboard-check fa-fw"></i>
                 <span>Thông tin Đăng ký</span>
+            </a>
+            <a href="?view=course_info" class="sidebar-link flex items-center space-x-3 py-2 px-4 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition duration-200 <?php echo ($currentView === 'course_info') ? 'active' : ''; ?>">
+                <i class="fas fa-graduation-cap fa-fw"></i>
+                <span>Thông tin Học phần</span>
             </a>
         </nav>
 
@@ -69,8 +69,21 @@
             <!-- Profile Dropdown -->
             <div class="relative">
                 <button onclick="toggleDropdown('profile-dropdown')" class="flex items-center space-x-4 focus:outline-none">
-                    <span class="text-gray-700">Chào mừng, <?php echo htmlspecialchars($_SESSION['user_username']); ?>!</span>
-                    <img class="w-10 h-10 rounded-full border-2 border-blue-500" src="https://via.placeholder.com/150" alt="Profile Picture">
+                    <span class="text-gray-700"><?php echo htmlspecialchars($_SESSION['user_username']); ?></span>
+                    <?php
+                        $gender_icon = URLROOT . '/public/img/avatars/default.jpg'; // Default placeholder
+                        if (isset($_SESSION['user_gender'])) {
+                            if ($_SESSION['user_gender'] === 'male') {
+                                $gender_icon = URLROOT . '/public/img/avatars/male.jpg';
+                            } elseif ($_SESSION['user_gender'] === 'female') {
+                                $gender_icon = URLROOT . '/public/img/avatars/female.jpg';
+                            } else {
+                                // Fallback for 'other' or undefined gender
+                                $gender_icon = URLROOT . '/public/img/avatars/default.jpg';
+                            }
+                        }
+                    ?>
+                    <img class="w-10 h-10 rounded-full border-2 border-blue-500" src="<?php echo $gender_icon; ?>" alt="Profile Picture">
                 </button>
                 <!-- Dropdown Menu -->
                 <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
@@ -136,9 +149,10 @@
                         echo '<table class="min-w-full bg-white border border-gray-200 text-sm whitespace-nowrap">';
                         echo '<thead>';
                         echo '<tr class="bg-gray-50">';
-                        echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">STT</th>';
                         echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Mã lớp học</th>';
                         echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Tên môn học</th>';
+                        echo '<th class="py-3 px-4 border-b text-center text-gray-600 font-semibold">Số TC</th>';
+                        echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Học kì</th>';
                         echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Trạng thái</th>';
                         echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Ngày Đăng Ký</th>';
                         echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Ngày Kết Quả</th>';
@@ -148,9 +162,10 @@
                         echo '<tbody>';
                         foreach ($data['registrations'] as $reg) {
                             echo '<tr class="hover:bg-gray-50">';
-                            echo '<td class="py-3 px-4 border-b text-gray-700 text-center">' . htmlspecialchars($reg->registration_id) . '</td>';
                             echo '<td class="py-3 px-4 border-b text-gray-700 font-mono">' . htmlspecialchars($reg->class_code) . '</td>';
                             echo '<td class="py-3 px-4 border-b text-gray-700 font-semibold">' . htmlspecialchars($reg->course_name) . '</td>';
+                            echo '<td class="py-3 px-4 border-b text-gray-700 text-center">' . htmlspecialchars($reg->credits) . '</td>';
+                            echo '<td class="py-3 px-4 border-b text-gray-700">' . htmlspecialchars($reg->semester) . '</td>';
                             
                             // Status cell
                             echo '<td class="py-3 px-4 border-b text-gray-700">';
@@ -194,6 +209,46 @@
                     echo '</section>';
                     break;
 
+                case 'course_info':
+                    echo '<section class="bg-white p-6 rounded-lg shadow-md mb-6">';
+                    echo '<h2 class="text-2xl font-semibold text-gray-800 mb-4">Thông tin Học phần đã Xác nhận</h2>';
+                    if (!empty($data['confirmed_courses_by_semester'])) {
+                        foreach ($data['confirmed_courses_by_semester'] as $semesterData) {
+                            echo '<div class="mb-6">';
+                            echo '<h3 class="text-xl font-semibold text-gray-700 mb-3">' . htmlspecialchars($semesterData['semester_display']) . '</h3>';
+                            echo '<div class="table-responsive">';
+                            echo '<table class="min-w-full bg-white border border-gray-200 text-sm whitespace-nowrap">';
+                            echo '<thead>';
+                            echo '<tr class="bg-gray-50">';
+                            echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Mã lớp học</th>';
+                            echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Tên môn học</th>';
+                            echo '<th class="py-3 px-4 border-b text-center text-gray-600 font-semibold">Số TC</th>';
+                            echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Giáo viên</th>';
+                            echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Thứ</th>';
+                            echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Giờ</th>';
+                            echo '</tr>';
+                            echo '</thead>';
+                            echo '<tbody>';
+                            foreach ($semesterData['courses'] as $course) {
+                                echo '<tr class="hover:bg-gray-50">';
+                                echo '<td class="py-3 px-4 border-b text-gray-700 font-mono">' . htmlspecialchars($course->class_code) . '</td>';
+                                echo '<td class="py-3 px-4 border-b text-gray-700 font-semibold">' . htmlspecialchars($course->course_name) . '</td>';
+                                echo '<td class="py-3 px-4 border-b text-gray-700 text-center">' . htmlspecialchars($course->credits) . '</td>';
+                                echo '<td class="py-3 px-4 border-b text-gray-700">' . (isset($course->teacher) ? htmlspecialchars($course->teacher) : 'N/A') . '</td>';
+                                echo '<td class="py-3 px-4 border-b text-gray-700">' . (isset($course->schedule_day) ? htmlspecialchars($course->schedule_day) : 'N/A') . '</td>';
+                                echo '<td class="py-3 px-4 border-b text-gray-700">' . (isset($course->schedule_time) ? htmlspecialchars($course->schedule_time) : 'N/A') . '</td>';
+                                echo '</tr>';
+                            }
+                            echo '</tbody>';
+                            echo '</table>';
+                            echo '</div>';
+                            echo '</div>';
+                        }
+                    } else {
+                        echo '<p class="text-gray-600">Bạn chưa có học phần nào được xác nhận.</p>';
+                    }
+                    echo '</section>';
+                    break;
                 case 'dashboard':
                 default:
                     echo '<section class="bg-white p-6 rounded-lg shadow-md mb-6">';
