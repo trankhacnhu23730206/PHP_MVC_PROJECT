@@ -17,16 +17,26 @@ class Registration {
         return $this->db->resultSet();
     }
 
+    public function getAllRegistrations(){
+        $this->db->query('SELECT r.id as registration_id, u.username, c.class_code, c.course_name, c.credits, c.semester, r.status, r.registration_date, r.result_date 
+                          FROM registrations r
+                          JOIN courses c ON r.course_id = c.id
+                          JOIN users u ON r.user_id = u.id
+                          WHERE r.status != "Đã hủy"
+                          ORDER BY COALESCE(r.result_date, r.registration_date) DESC');
+        return $this->db->resultSet();
+    }
+
     // Register a user for a course
     public function registerCourse($user_id, $course_id){
         // Check if already actively registered to prevent duplicates
-        $this->db->query('SELECT * FROM registrations WHERE user_id = :user_id AND course_id = :course_id AND status != "Đã hủy"');
+        $this->db->query('SELECT * FROM registrations WHERE user_id = :user_id AND course_id = :course_id AND status != "Đã hủy" AND status != "Từ chối"');
         $this->db->bind(':user_id', $user_id);
         $this->db->bind(':course_id', $course_id);
         $row = $this->db->single();
 
         if($this->db->rowCount() > 0){
-            return false; // Already registered and not cancelled
+            return false; // Already registered and not cancelled/rejected
         }
 
         // Insert new registration with 'Chờ xác nhận' status
@@ -41,7 +51,7 @@ class Registration {
         }
     }
 
-    // Cancel a registration by updating its status
+    // Cancel a registration by updating its status (Student action)
     public function cancelRegistration($registration_id){
         $this->db->query('UPDATE registrations SET status = "Đã hủy", result_date = NOW() WHERE id = :registration_id');
         $this->db->bind(':registration_id', $registration_id);
@@ -53,9 +63,21 @@ class Registration {
         }
     }
 
-    // Confirm a registration by updating its status
+    // Confirm a registration by updating its status (Admin action)
     public function confirmRegistration($registration_id){
         $this->db->query('UPDATE registrations SET status = "Đã xác nhận", result_date = NOW() WHERE id = :registration_id');
+        $this->db->bind(':registration_id', $registration_id);
+
+        if($this->db->execute()){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    // Reject a registration by updating its status (Admin action)
+    public function rejectRegistration($registration_id){
+        $this->db->query('UPDATE registrations SET status = "Từ chối", result_date = NOW() WHERE id = :registration_id');
         $this->db->bind(':registration_id', $registration_id);
 
         if($this->db->execute()){
@@ -73,7 +95,7 @@ class Registration {
                           WHERE r.user_id = :user_id
                           AND c.semester = :semester
                           AND c.school_year = :school_year
-                          AND r.status != "Đã hủy"');
+                          AND r.status != "Đã hủy" AND r.status != "Từ chối"');
         $this->db->bind(':user_id', $user_id);
         $this->db->bind(':semester', $semester);
         $this->db->bind(':school_year', $school_year);
@@ -91,6 +113,32 @@ class Registration {
                           WHERE r.user_id = :user_id AND r.status = "Đã xác nhận"
                           ORDER BY c.school_year DESC, c.semester DESC');
         $this->db->bind(':user_id', $user_id);
+        return $this->db->resultSet();
+    }
+
+    public function searchRegistrations($searchTerm, $user_id = null){
+        $searchTerm = '%' . $searchTerm . '%';
+
+        if($user_id){ // User search
+            $this->db->query('SELECT r.id as registration_id, c.*, r.status, r.registration_date, r.result_date 
+                              FROM registrations r
+                              JOIN courses c ON r.course_id = c.id
+                              WHERE r.user_id = :user_id
+                              AND (c.course_name LIKE :searchTerm OR c.class_code LIKE :searchTerm)
+                              ORDER BY COALESCE(r.result_date, r.registration_date) DESC');
+            $this->db->bind(':user_id', $user_id);
+            $this->db->bind(':searchTerm', $searchTerm);
+        } else { // Admin search
+            $this->db->query('SELECT r.id as registration_id, u.username, c.class_code, c.course_name, c.credits, c.semester, r.status, r.registration_date, r.result_date 
+                              FROM registrations r
+                              JOIN courses c ON r.course_id = c.id
+                              JOIN users u ON r.user_id = u.id
+                              WHERE r.status != "Đã hủy"
+                              AND (u.username LIKE :searchTerm OR c.course_name LIKE :searchTerm OR c.class_code LIKE :searchTerm)
+                              ORDER BY COALESCE(r.result_date, r.registration_date) DESC');
+            $this->db->bind(':searchTerm', $searchTerm);
+        }
+
         return $this->db->resultSet();
     }
 }

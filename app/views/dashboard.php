@@ -48,10 +48,17 @@
                 <i class="fas fa-clipboard-check fa-fw"></i>
                 <span>Thông tin Đăng ký</span>
             </a>
-            <a href="?view=course_info" class="sidebar-link flex items-center space-x-3 py-2 px-4 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition duration-200 <?php echo ($currentView === 'course_info') ? 'active' : ''; ?>">
-                <i class="fas fa-graduation-cap fa-fw"></i>
-                <span>Thông tin Học phần</span>
-            </a>
+            <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') : ?>
+                <a href="?view=user_management" class="sidebar-link flex items-center space-x-3 py-2 px-4 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition duration-200 <?php echo ($currentView === 'user_management') ? 'active' : ''; ?>">
+                    <i class="fas fa-users fa-fw"></i>
+                    <span>Thông tin Tài khoản</span>
+                </a>
+            <?php else : ?>
+                <a href="?view=course_info" class="sidebar-link flex items-center space-x-3 py-2 px-4 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition duration-200 <?php echo ($currentView === 'course_info') ? 'active' : ''; ?>">
+                    <i class="fas fa-graduation-cap fa-fw"></i>
+                    <span>Thông tin Học phần</span>
+                </a>
+            <?php endif; ?>
         </nav>
 
         
@@ -60,9 +67,15 @@
     <main class="flex-1 p-8 overflow-y-auto">
         <?php
             $view = $_GET['view'] ?? 'dashboard';
-            $pageTitle = 'Dashboard';
+            if ($_SESSION['user_role'] === 'admin') {
+                $pageTitle = 'Quản Trị Viên Hệ Thống';
+            }else {
+                $pageTitle = 'Sinh Viên';
+            }
             if ($view === 'courses') $pageTitle = 'Danh sách Khóa học';
             if ($view === 'registrations') $pageTitle = 'Thông tin Đăng ký';
+            if ($view === 'course_info') $pageTitle = 'Thông tin Học Phần';
+            if ($view === 'user_management') $pageTitle = 'Quản lý Tài khoản Người dùng';
         ?>
         <header class="flex justify-between items-center mb-6">
             <h1 class="text-3xl font-bold text-gray-800"><?php echo $pageTitle; ?></h1>
@@ -87,6 +100,7 @@
                 </button>
                 <!-- Dropdown Menu -->
                 <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                    <a href="?view=profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Thông tin người dùng</a>
                     <a href="<?php echo URLROOT; ?>/public/users/changePassword" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Đổi mật khẩu</a>
                     <a href="<?php echo URLROOT; ?>/public/users/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Đăng xuất</a>
                 </div>
@@ -96,6 +110,7 @@
         <?php
             switch ($view) {
                 case 'courses':
+                    flash('course_message');
                     // Check for credit limit error flash message
                     if(isset($_SESSION['credit_error'])){
                         echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">';
@@ -106,7 +121,18 @@
                     }
                     
                     echo '<section class="bg-white p-6 rounded-lg shadow-md mb-6">';
-                    echo '<h2 class="text-2xl font-semibold text-gray-800 mb-4">Các Lớp học có thể Đăng ký</h2>';
+                    echo '<div class="flex justify-between items-center mb-4">';
+                    if ($_SESSION['user_role'] === 'admin') {
+                        echo '<h2 class="text-2xl font-semibold text-gray-800 mb-4">Quản lý Lớp học</h2>';
+                    } else {
+                        echo '<h2 class="text-2xl font-semibold text-gray-800 mb-4">Các Lớp học có thể Đăng ký</h2>';
+                    }
+                    if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
+                        echo '<a href="' . URLROOT . '/public/courses/addCourse" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-150">';
+                        echo '<i class="fas fa-plus-circle mr-2"></i> Thêm Khóa học';
+                        echo '</a>';
+                    }
+                    echo '</div>';
                     echo '<div class="mb-4"><input type="text" id="course-search" placeholder="Tìm theo tên hoặc mã môn học..." class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>';
 
                     echo '<div class="table-responsive">';
@@ -139,73 +165,47 @@
                     break;
                 
                        case 'registrations':
+                    flash('registration_message');
                     echo '<section class="bg-white p-6 rounded-lg shadow-md mb-6">';
-                    echo '<h2 class="text-2xl font-semibold text-gray-800 mb-4">Các Môn học đã Đăng ký</h2>';
-                    
-                    
-
-                    if (!empty($data['registrations'])) {
-                        echo '<div class="table-responsive">';
-                        echo '<table class="min-w-full bg-white border border-gray-200 text-sm whitespace-nowrap">';
-                        echo '<thead>';
-                        echo '<tr class="bg-gray-50">';
-                        echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Mã lớp học</th>';
-                        echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Tên môn học</th>';
-                        echo '<th class="py-3 px-4 border-b text-center text-gray-600 font-semibold">Số TC</th>';
-                        echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Học kì</th>';
-                        echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Trạng thái</th>';
-                        echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Ngày Đăng Ký</th>';
-                        echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Ngày Kết Quả</th>';
-                        echo '<th class="py-3 px-4 border-b text-right text-gray-600 font-semibold">Hành động</th>';
-                        echo '</tr>';
-                        echo '</thead>';
-                        echo '<tbody>';
-                        foreach ($data['registrations'] as $reg) {
-                            echo '<tr class="hover:bg-gray-50">';
-                            echo '<td class="py-3 px-4 border-b text-gray-700 font-mono">' . htmlspecialchars($reg->class_code) . '</td>';
-                            echo '<td class="py-3 px-4 border-b text-gray-700 font-semibold">' . htmlspecialchars($reg->course_name) . '</td>';
-                            echo '<td class="py-3 px-4 border-b text-gray-700 text-center">' . htmlspecialchars($reg->credits) . '</td>';
-                            echo '<td class="py-3 px-4 border-b text-gray-700">' . htmlspecialchars($reg->semester) . '</td>';
-                            
-                            // Status cell
-                            echo '<td class="py-3 px-4 border-b text-gray-700">';
-                            $status_text = htmlspecialchars($reg->status);
-                            $status_color = 'gray';
-                            if ($status_text === 'Đã xác nhận') $status_color = 'green';
-                            if ($status_text === 'Chờ xác nhận') $status_color = 'yellow';
-                            if ($status_text === 'Đã hủy') $status_color = 'red';
-                            echo "<span class='px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-{$status_color}-100 text-{$status_color}-800'>{$status_text}</span>";
-                            echo '</td>';
-
-                            // Registration Date cell
-                            echo '<td class="py-3 px-4 border-b text-gray-700">' . date('d/m/Y H:i', strtotime($reg->registration_date)) . '</td>';
-
-                            // Result Date cell
-                            echo '<td class="py-3 px-4 border-b text-gray-700">';
-                            if (!empty($reg->result_date)) {
-                                echo date('d/m/Y H:i', strtotime($reg->result_date));
-                            } else {
-                                echo '...';
-                            }
-                            echo '</td>';
-
-                            // Action cell
-                            echo '<td class="py-3 px-4 border-b text-right">';
-                            if ($reg->status === 'Chờ xác nhận') {
-                                echo '<a href="?view=registrations&action=cancel&id=' . htmlspecialchars($reg->registration_id) . '" onclick="return confirm(\'Bạn có chắc chắn muốn hủy đăng ký môn học này không?\')" class="bg-yellow-500 hover:bg-yellow-700 text-white text-xs font-bold py-2 px-3 rounded inline-flex items-center transition duration-150">';
-                                echo '<i class="fas fa-times-circle mr-1"></i> Hủy';
-                                echo '</a>';
-                            }
-                            echo '</td>';
-
-                            echo '</tr>';
-                        }
-                        echo '</tbody>';
-                        echo '</table>';
-                        echo '</div>';
+                    if ($_SESSION['user_role'] === 'admin') {
+                        echo '<h2 class="text-2xl font-semibold text-gray-800 mb-4">Quản lý Đăng ký</h2>';
                     } else {
-                        echo '<p class="text-gray-600">Bạn chưa đăng ký môn học nào.</p>';
+                        echo '<h2 class="text-2xl font-semibold text-gray-800 mb-4">Các Môn học đã Đăng ký</h2>';
                     }
+
+                    $placeholder = ($_SESSION['user_role'] === 'admin') ? 'Tìm theo tên sinh viên, tên hoặc mã môn học...' : 'Tìm theo tên hoặc mã môn học...';
+                    echo '<div class="mb-4"><input type="text" id="registration-search" placeholder="' . $placeholder . '" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>';
+
+                    echo '<div class="table-responsive">';
+                    echo '<table class="min-w-full bg-white border border-gray-200 text-sm whitespace-nowrap">';
+                    echo '<thead>';
+                    echo '<tr class="bg-gray-50">';
+                    if ($_SESSION['user_role'] === 'admin') {
+                        echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Sinh viên</th>';
+                    }
+                    echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Mã lớp học</th>';
+                    echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Tên môn học</th>';
+                    echo '<th class="py-3 px-4 border-b text-center text-gray-600 font-semibold">Số TC</th>';
+                    echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Học kì</th>';
+                    echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Trạng thái</th>';
+                    echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Ngày Đăng Ký</th>';
+                    echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Ngày Kết Quả</th>';
+                    echo '<th class="py-3 px-4 border-b text-right text-gray-600 font-semibold">Hành động</th>';
+                    echo '</tr>';
+                    echo '</thead>';
+                    echo '<tbody id="registration-table-body">';
+                    
+                    if (!empty($data['registrations'])) {
+                        include APPROOT . '/app/views/partials/registration_table_rows.php';
+                    } else {
+                        $message = ($_SESSION['user_role'] === 'admin') ? 'Không có đăng ký nào cần xử lý.' : 'Bạn chưa đăng ký môn học nào.';
+                        $colspan = ($_SESSION['user_role'] === 'admin') ? 9 : 8;
+                        echo '<tr><td colspan="' . $colspan . '" class="text-center py-4 text-gray-600">' . $message . '</td></tr>';
+                    }
+
+                    echo '</tbody>';
+                    echo '</table>';
+                    echo '</div>';
                     echo '</section>';
                     break;
 
@@ -213,9 +213,13 @@
                     echo '<section class="bg-white p-6 rounded-lg shadow-md mb-6">';
                     echo '<h2 class="text-2xl font-semibold text-gray-800 mb-4">Thông tin Học phần đã Xác nhận</h2>';
                     if (!empty($data['confirmed_courses_by_semester'])) {
-                        foreach ($data['confirmed_courses_by_semester'] as $semesterData) {
+                        foreach ($data['confirmed_courses_by_semester'] as $semester_display => $courses) {
                             echo '<div class="mb-6">';
-                            echo '<h3 class="text-xl font-semibold text-gray-700 mb-3">' . htmlspecialchars($semesterData['semester_display']) . '</h3>';
+                            $total_credits = 0;
+                            foreach ($courses as $course) {
+                                $total_credits += $course->credits;
+                            }
+                            echo '<h3 class="text-xl font-semibold text-gray-700 mb-3">Học kì: ' . htmlspecialchars($semester_display) . ' - Năm Học: ' . htmlspecialchars($courses[0]->school_year) . ' - Tổng số tín chỉ: ' . $total_credits . '</h3>';
                             echo '<div class="table-responsive">';
                             echo '<table class="min-w-full bg-white border border-gray-200 text-sm whitespace-nowrap">';
                             echo '<thead>';
@@ -229,7 +233,7 @@
                             echo '</tr>';
                             echo '</thead>';
                             echo '<tbody>';
-                            foreach ($semesterData['courses'] as $course) {
+                            foreach ($courses as $course) {
                                 echo '<tr class="hover:bg-gray-50">';
                                 echo '<td class="py-3 px-4 border-b text-gray-700 font-mono">' . htmlspecialchars($course->class_code) . '</td>';
                                 echo '<td class="py-3 px-4 border-b text-gray-700 font-semibold">' . htmlspecialchars($course->course_name) . '</td>';
@@ -248,6 +252,41 @@
                         echo '<p class="text-gray-600">Bạn chưa có học phần nào được xác nhận.</p>';
                     }
                     echo '</section>';
+                    break;
+                case 'user_management':
+                    flash('user_message');
+                    echo '<section class="bg-white p-6 rounded-lg shadow-md mb-6">';
+                    echo '<div class="flex justify-between items-center mb-4">';
+                    echo '<h2 class="text-2xl font-semibold text-gray-800">Quản lý Tài khoản Người dùng</h2>';
+                    echo '<a href="' . URLROOT . '/public/users/addUser" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-150">';
+                    echo '<i class="fas fa-user-plus mr-2"></i> Thêm Người dùng';
+                    echo '</a>';
+                    echo '</div>';
+                    echo '<div class="mb-4"><input type="text" id="user-search" placeholder="Tìm theo tên đăng nhập hoặc vai trò..." class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></div>';
+                    echo '<div class="table-responsive">';
+                    echo '<table class="min-w-full bg-white border border-gray-200 text-sm whitespace-nowrap">';
+                    echo '<thead>';
+                    echo '<tr class="bg-gray-50">';
+                    echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">ID</th>';
+                    echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Tên đăng nhập</th>';
+                    echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Giới tính</th>';
+                    echo '<th class="py-3 px-4 border-b text-left text-gray-600 font-semibold">Vai trò</th>';
+                    echo '<th class="py-3 px-4 border-b text-right text-gray-600 font-semibold">Hành động</th>';
+                    echo '</tr>';
+                    echo '</thead>';
+                    echo '<tbody id="user-table-body">';
+                    if (!empty($data['users'])) {
+                        include APPROOT . '/app/views/partials/user_table_rows.php';
+                    } else {
+                        echo '<tr><td colspan="5" class="text-center py-4 text-gray-600">Không có người dùng nào để hiển thị.</td></tr>';
+                    }
+                    echo '</tbody>';
+                    echo '</table>';
+                    echo '</div>';
+                    echo '</section>';
+                    break;
+                case 'profile':
+                    include APPROOT . '/app/views/profile.php';
                     break;
                 case 'dashboard':
                 default:
@@ -311,6 +350,41 @@
                         .catch(error => {
                             console.error('Error fetching search results:', error);
                             tableBody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-red-500">Có lỗi xảy ra khi tìm kiếm.</td></tr>';
+                        });
+                }, 300); // 300ms debounce
+            });
+        }
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const registrationSearchInput = document.getElementById('registration-search');
+        if (registrationSearchInput) {
+            const tableBody = document.getElementById('registration-table-body');
+            const urlRoot = '<?php echo URLROOT; ?>';
+            let debounceTimer;
+
+            registrationSearchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value;
+                const colspan = '<?php echo ($_SESSION['user_role'] === 'admin') ? 9 : 8; ?>';
+
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    tableBody.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-4">Đang tìm kiếm...</td></tr>`;
+
+                    fetch(`${urlRoot}/public/users/registrationSearch?term=${searchTerm}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.text();
+                        })
+                        .then(html => {
+                            tableBody.innerHTML = html;
+                        })
+                        .catch(error => {
+                            console.error('Error fetching search results:', error);
+                            tableBody.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-4 text-red-500">Có lỗi xảy ra khi tìm kiếm.</td></tr>`;
                         });
                 }, 300); // 300ms debounce
             });

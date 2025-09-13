@@ -20,14 +20,20 @@ if (!empty($data['courses'])) {
         echo '<td class="py-3 px-4 border-b text-gray-700">' . htmlspecialchars($course->schedule_day) . ' (' . htmlspecialchars($course->schedule_time) . ')</td>';
         echo '<td class="py-3 px-4 border-b text-gray-700 text-center">' . htmlspecialchars($course->semester) . '</td>';
 
-        // Conditional "Register" button
+        // Conditional "Action" button based on user role
         echo '<td class="py-3 px-4 border-b text-right">';
-        if (in_array($course->id, $registeredCourseIds)) {
-            echo '<span class="px-3 py-2 text-xs font-bold text-gray-500 bg-gray-100 rounded">Đã đăng ký</span>';
-        } else {
-            echo '<a href="?view=registrations&action=register&id=' . htmlspecialchars($course->id) . '" onclick="return confirm(\'Bạn có muốn đăng ký lớp học này không?\')" class="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-3 rounded inline-flex items-center transition duration-150">';
-            echo '<i class="fas fa-plus mr-1"></i> Đăng ký';
+        if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
+            echo '<a href="' . URLROOT . '/public/courses/deleteCourse/' . htmlspecialchars($course->id) . '" onclick="return confirm(\'Bạn có chắc chắn muốn xóa khóa học này không?\')" class="bg-red-500 hover:bg-red-700 text-white text-xs font-bold py-2 px-3 rounded inline-flex items-center transition duration-150">';
+            echo '<i class="fas fa-trash mr-1"></i> Xóa';
             echo '</a>';
+        } else {
+            if (in_array($course->id, $registeredCourseIds)) {
+                echo '<span class="px-3 py-2 text-xs font-bold text-gray-500 bg-gray-100 rounded">Đã đăng ký</span>';
+            } else {
+                echo '<a href="?view=courses&action=register&id=' . htmlspecialchars($course->id) . '" onclick="return confirm(\'Bạn có muốn đăng ký lớp học này không?\')" class="bg-blue-500 hover:bg-blue-700 text-white text-xs font-bold py-2 px-3 rounded inline-flex items-center transition duration-150">';
+                echo '<i class="fas fa-plus mr-1"></i> Đăng ký';
+                echo '</a>';
+            }
         }
         echo '</td>';
         echo '</tr>';
