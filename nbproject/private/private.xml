@@ -3,11 +3,22 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/xampp/htdocs/demoPHP/login.php</file>
-            <file>file:/C:/xampp/htdocs/demoPHP/dashboard.php</file>
-            <file>file:/C:/xampp/htdocs/demoPHP/process_login.php</file>
-            <file>file:/C:/xampp/htdocs/demoPHP/tao_mat_khau.php</file>
-            <file>file:/C:/xampp/htdocs/demoPHP/logout.php</file>
+            <file>file:/C:/xampp/htdocs/PHP_MVC_PROJECT/app/models/Registration.php</file>
+            <file>file:/C:/xampp/htdocs/PHP_MVC_PROJECT/app/models/Course.php</file>
+            <file>file:/C:/xampp/htdocs/PHP_MVC_PROJECT/app/models/User.php</file>
+            <file>file:/C:/xampp/htdocs/PHP_MVC_PROJECT/README.md</file>
+            <file>file:/C:/xampp/htdocs/PHP_MVC_PROJECT/public/img/avatars/male.jpg</file>
+            <file>file:/C:/xampp/htdocs/PHP_MVC_PROJECT/core/Controller.php</file>
+            <file>file:/C:/xampp/htdocs/PHP_MVC_PROJECT/app/views/dashboard.php</file>
+            <file>file:/C:/xampp/htdocs/PHP_MVC_PROJECT/index.php</file>
+            <file>file:/C:/xampp/htdocs/PHP_MVC_PROJECT/config/config.php</file>
+            <file>file:/C:/xampp/htdocs/PHP_MVC_PROJECT/app/controllers/Users.php</file>
+            <file>file:/C:/xampp/htdocs/PHP_MVC_PROJECT/core/Database.php</file>
+            <file>file:/C:/xampp/htdocs/PHP_MVC_PROJECT/public/index.php</file>
+            <file>file:/C:/xampp/htdocs/PHP_MVC_PROJECT/core/App.php</file>
+            <file>file:/C:/xampp/htdocs/PHP_MVC_PROJECT/app/views/change_password.php</file>
+            <file>file:/C:/xampp/htdocs/PHP_MVC_PROJECT/app/views/partials/course_table_rows.php</file>
+            <file>file:/C:/xampp/htdocs/PHP_MVC_PROJECT/public/img/avatars/female.jpg</file>
         </group>
     </open-files>
 </project-private>
