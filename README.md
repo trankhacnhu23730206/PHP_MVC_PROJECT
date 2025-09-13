@@ -9,6 +9,8 @@ Dự án PHP đơn giản được xây dựng trên mô hình MVC tự chế, b
 -   Xác thực người dùng (Đăng nhập / Đăng xuất).
 -   Sử dụng PDO để tương tác với cơ sở dữ liệu một cách an toàn.
 -   Quản lý người dùng, khóa học và đăng ký.
+-   Chức năng tìm kiếm linh hoạt cho khóa học và đăng ký.
+-   Kiểm soát giới hạn tín chỉ (tối đa 20 tín chỉ) khi đăng ký khóa học.
 
 ## Yêu cầu
 
@@ -57,14 +59,15 @@ Dự án này hỗ trợ hai vai trò người dùng chính: **Quản trị viê
 Người dùng có vai trò Sinh viên có thể thực hiện các chức năng sau:
 
 *   **Xem danh sách khóa học:** Xem các khóa học hiện có để đăng ký.
-*   **Đăng ký khóa học:** Đăng ký các khóa học mong muốn, có kiểm tra giới hạn tín chỉ cho mỗi học kỳ.
+*   **Đăng ký khóa học:** Đăng ký các khóa học mong muốn, có kiểm tra giới hạn tín chỉ (tối đa 20 tín chỉ) cho mỗi học kỳ.
 *   **Xem các môn học đã đăng ký:** Xem danh sách các khóa học mà mình đã đăng ký.
 *   **Hủy đăng ký:** Hủy bỏ đăng ký đối với các khóa học của mình.
 *   **Xem thông tin học phần đã xác nhận:** Xem các khóa học đã được quản trị viên xác nhận, được nhóm theo học kỳ.
 *   **Tìm kiếm khóa học:** Tìm kiếm khóa học theo tên hoặc mã môn học.
 *   **Tìm kiếm đăng ký:** Tìm kiếm các đăng ký khóa học của bản thân.
-*   **Đổi mật khẩu:** Thay đổi mật khẩu tài khoản cá nhân.
+*   **Đổi mật khẩu:** Thay đổi mật khẩu tài khoản cá nhân (truy cập qua biểu tượng hồ sơ).
 *   **Xem thông tin cá nhân:** Xem và cập nhật thông tin hồ sơ cá nhân.
+*   **Đăng xuất:** Đăng xuất khỏi hệ thống (truy cập qua biểu tượng hồ sơ).
 
 ### 2. Vai trò Quản trị viên (Admin)
 
@@ -72,22 +75,22 @@ Người dùng có vai trò Quản trị viên có toàn quyền quản lý hệ
 
 *   **Quản lý Khóa học:**
     *   Xem danh sách tất cả các khóa học.
-    *   Thêm khóa học mới vào hệ thống.
-    *   Chỉnh sửa thông tin chi tiết của các khóa học hiện có.
+    *   Thêm khóa học mới vào hệ thống (lưu ý: mã lớp học phải là duy nhất, nếu trùng sẽ báo lỗi).
     *   Xóa các khóa học khỏi hệ thống.
+    *   Tìm kiếm khóa học theo tên hoặc mã môn học.
 *   **Quản lý Đăng ký:**
     *   Xem tất cả các đăng ký khóa học của tất cả người dùng.
     *   Xác nhận các yêu cầu đăng ký khóa học.
     *   Từ chối các yêu cầu đăng ký khóa học.
-    *   Hủy đăng ký khóa học cho bất kỳ người dùng nào.
     *   Tìm kiếm tất cả các đăng ký theo tên sinh viên, tên khóa học hoặc mã khóa học.
 *   **Quản lý Tài khoản Người dùng:**
     *   Xem danh sách tất cả các tài khoản người dùng.
     *   Thêm người dùng mới vào hệ thống (có thể chỉ định vai trò là Sinh viên hoặc Quản trị viên).
     *   Chỉnh sửa thông tin tài khoản người dùng hiện có (bao gồm cả vai trò).
     *   Xóa tài khoản người dùng (không thể xóa tài khoản quản trị viên khác).
-*   **Đổi mật khẩu:** Thay đổi mật khẩu tài khoản cá nhân.
+*   **Đổi mật khẩu:** Thay đổi mật khẩu tài khoản cá nhân (truy cập qua biểu tượng hồ sơ).
 *   **Xem thông tin cá nhân:** Xem và cập nhật thông tin hồ sơ cá nhân.
+*   **Đăng xuất:** Đăng xuất khỏi hệ thống (truy cập qua biểu tượng hồ sơ).
 
 ## Cấu trúc thư mục
 
@@ -115,4 +118,4 @@ Dự án được tổ chức theo mô hình MVC (Model-View-Controller) tùy ch
 -   `database.sql`: Tệp chứa cấu trúc cơ sở dữ liệu và dữ liệu mẫu cần thiết để khởi tạo ứng dụng.
 -   `generate_hash.php`: Một tệp tiện ích dùng để tạo mật khẩu băm (hashed password) cho mục đích thử nghiệm hoặc khởi tạo.
 -   `index.php`: Tệp chính của ứng dụng, thường chuyển hướng đến thư mục `/public`.
--   `README.md`: Tệp này, chứa thông tin tổng quan về dự án, hướng dẫn cài đặt, và mô tả các chức năng.
+-   `README.md`: Tệp này, chứa thông tin tổng quan về dự án, hướng dẫn cài đặt, và mô tả các chức năng).
