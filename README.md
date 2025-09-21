@@ -21,17 +21,25 @@ Dự án PHP đơn giản được xây dựng trên mô hình MVC tự chế, b
 
 ## Hướng dẫn Cài đặt và Chạy dự án
 
-### Bước 1: Cài đặt Cơ sở dữ liệu
+### Bước 1: Sao chép dự án vào `htdocs`
+
+Đây là bước đầu tiên và quan trọng nhất để máy chủ Apache có thể tìm thấy và phục vụ dự án của bạn.
+
+1.  **Sao chép (Copy)** toàn bộ thư mục dự án `PHP_MVC_PROJECT`.
+2.  Dán (Paste) thư mục này vào thư mục `htdocs` của XAMPP. Đường dẫn mặc định thường là: `c:\xampp\htdocs`.
+3.  Kết quả cuối cùng là bạn sẽ có thư mục dự án tại: `c:\xampp\htdocs\PHP_MVC_PROJECT`.
+
+### Bước 2: Cài đặt Cơ sở dữ liệu
 
 1.  Khởi động **Apache** và **MySQL** từ XAMPP Control Panel.
 2.  Truy cập vào phpMyAdmin: `http://localhost/phpmyadmin`.
 3.  Tạo một cơ sở dữ liệu mới với tên là `demo_php` và bảng mã (collation) là `utf8mb4_general_ci`.
 4.  Chọn cơ sở dữ liệu `demo_php` vừa tạo.
 5.  Vào tab **Import** (Nhập) trong phpMyAdmin.
-6.  Nhấn vào **Choose File** (Chọn tệp) và chọn tệp `database.sql` (tệp này nằm trong thư mục gốc của dự án).
+6.  Nhấn vào **Choose File** (Chọn tệp) và chọn tệp `demo_php.sql` (tệp này nằm trong thư mục gốc của dự án).
 7.  Nhấn **Go** (Thực hiện) để nhập dữ liệu và cấu trúc bảng.
 
-### Bước 2: Cấu hình Apache
+### Bước 3: Cấu hình Apache
 
 Để ứng dụng có thể sử dụng URL thân thiện (`/users/login` thay vì `index.php?url=...`), bạn cần kích hoạt `mod_rewrite`.
 
@@ -115,7 +123,7 @@ Dự án được tổ chức theo mô hình MVC (Model-View-Controller) tùy ch
     -   `/public/img`: Chứa các tài nguyên hình ảnh của ứng dụng.
         -   `/public/img/avatars`: Chứa hình ảnh đại diện mặc định cho người dùng.
     -   Các tệp CSS, JavaScript (nếu có) cũng sẽ được đặt trong thư mục này hoặc các thư mục con tương ứng.
--   `database.sql`: Tệp chứa cấu trúc cơ sở dữ liệu và dữ liệu mẫu cần thiết để khởi tạo ứng dụng.
+-   `demo_php.sql`: Tệp chứa cấu trúc cơ sở dữ liệu và dữ liệu mẫu cần thiết để khởi tạo ứng dụng.
 -   `generate_hash.php`: Một tệp tiện ích dùng để tạo mật khẩu băm (hashed password) cho mục đích thử nghiệm hoặc khởi tạo.
 -   `index.php`: Tệp chính của ứng dụng, thường chuyển hướng đến thư mục `/public`.
 -   `README.md`: Tệp này, chứa thông tin tổng quan về dự án, hướng dẫn cài đặt, và mô tả các chức năng).
